@@ -1,7 +1,7 @@
 from django.test import TestCase
 
 from .models import TestModel
-from outpost.sync import sync
+from outpost import sync
 from outpost.models import SyncableModel
 
 import datetime as dt
