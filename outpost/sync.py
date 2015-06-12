@@ -7,13 +7,18 @@ import json
 
 
 class NetworkSyncBackend:
-    def __init__(self, host, potr):
-        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        s.connect((host, port))
+    def __init__(self, host, port):
+        self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.s.connect((host, port))
         # defer s.close()
 
     def sync(self, obj):
-        s.send(json.dumps(obj.serialize()))
+        self.s.send(json.dumps({
+            "type": {"label": obj._meta.app_label,
+                     "model": obj._meta.object_name},
+            "object": obj.serialize(),
+        }).encode())
+        self.s.send(b'\n')
 
 
 class Sync:
