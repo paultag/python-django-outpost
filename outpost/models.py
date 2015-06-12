@@ -12,5 +12,5 @@ class SyncableModel(models.Model):
     def serialize(self):
         pass
 
-    def save(self):
-        return super(SyncableModel, self).save()
+    def save(self, *args, **kwargs):
+        return super(SyncableModel, self).save(*args, **kwargs)
