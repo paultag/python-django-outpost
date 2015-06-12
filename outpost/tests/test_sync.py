@@ -9,7 +9,7 @@ import queue
 
 
 class SyncBackend:
-    def __init__(self, host, auth):
+    def __init__(self):
         self.out = queue.Queue(maxsize=1)
 
     def sync(self, obj):
@@ -19,7 +19,7 @@ class SyncBackend:
 
 class SyncBackendTestCase(TestCase):
     def setUp(self):
-        self.sync = sync(host=None, auth=None, backend=SyncBackend)
+        self.sync = sync(backend=SyncBackend)
 
     def tearDown(self):
         self.sync.stop()
