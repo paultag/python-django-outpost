@@ -23,7 +23,7 @@ class SyncableModel(models.Model):
 
     @classmethod
     def _catchup(cls, when):
-        q = self.get_queue()
+        q = cls.get_queue()
         for obj in cls.objects.filter(when__gte=when).distinct():
             q.put(obj)
 
