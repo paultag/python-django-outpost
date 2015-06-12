@@ -19,7 +19,6 @@ class NetworkSyncBackend:
         self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.s.connect((self.host, self.port))
         timestamp = dt.datetime.fromtimestamp(int(self.s.recv(10)))
-        print(timestamp)
 
         for model in SyncableModel.get_models():
             model._catchup(timestamp)
