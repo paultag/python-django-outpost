@@ -4,15 +4,29 @@ import queue
 
 import socket
 import json
+import time
 
 
 class NetworkSyncBackend:
-    def __init__(self, host, port):
+    def __init__(self, host, port, backoff=5):
+        self.backoff = backoff
+        self.host = host
+        self.port = port
+        self.connect()
+
+    def connect(self):
         self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.s.connect((host, port))
-        # defer s.close()
+        self.s.connect((self.host, self.port))
 
     def sync(self, obj):
+        try:
+            return self._sync(obj)
+        except BrokenPipeError:
+            time.sleep(self.backoff)
+            self.connect()
+            return self.sync(obj)
+
+    def _sync(self, obj):
         self.s.send(json.dumps({
             "type": {"label": obj._meta.app_label,
                      "model": obj._meta.object_name},
