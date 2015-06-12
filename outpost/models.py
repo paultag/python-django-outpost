@@ -27,6 +27,10 @@ class SyncableModel(models.Model):
         for obj in cls.objects.filter(when__gte=when).distinct():
             q.put(obj)
 
+    @classmethod
+    def _stawp(cls):
+        SyncableModel._sync_queue = None
+
     def save(self, *args, **kwargs):
         if SyncableModel._sync_queue is not None:
             SyncableModel._sync_queue.put(self)

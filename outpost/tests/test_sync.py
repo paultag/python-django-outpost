@@ -2,6 +2,7 @@ from django.test import TestCase
 
 from .models import TestModel
 from outpost.sync import sync
+from outpost.models import SyncableModel
 
 import datetime as dt
 import queue
@@ -27,10 +28,17 @@ class SyncBackendTestCase(TestCase):
         TestModel.objects.create(data="Foo!!")
         el = self.sync.backend.out.get()
         self.assertEqual(el.data, "Foo!!")
+        SyncableModel._stawp()
 
     def test_catchup_works_sync(self):
         when = dt.datetime.now()
-        TestModel.objects.create(data="Foo!!")
+        TestModel.objects.create(data="1")
+        TestModel.objects.create(data="2")
         TestModel._catchup(when)
+
         el = self.sync.backend.out.get()
-        self.assertEqual(el.data, "Foo!!")
+        self.assertEqual(el.data, "1")
+
+        el = self.sync.backend.out.get()
+        self.assertEqual(el.data, "2")
+        SyncableModel._stawp()
