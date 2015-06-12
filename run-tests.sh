@@ -1,1 +1,1 @@
-py.test outpost --ds=outpost.tests.settings -v
+py.test outpost --ds=outpost.tests.settings -vs

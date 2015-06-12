@@ -22,6 +22,10 @@ class SyncableModel(models.Model):
         return SyncableModel._sync_queue
 
     @classmethod
+    def get_models(cls):
+        return SyncableModel.__subclasses__()
+
+    @classmethod
     def _catchup(cls, when):
         q = cls.get_queue()
         for obj in cls.objects.filter(when__gte=when).distinct():
