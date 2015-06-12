@@ -2,6 +2,8 @@ import threading
 import socketserver
 import time
 import json
+import datetime as dt
+
 
 class SyncServerHandler(socketserver.BaseRequestHandler):
 
@@ -21,6 +23,9 @@ class SyncServerHandler(socketserver.BaseRequestHandler):
                     continue
 
     def handle(self):
+        when = dt.datetime.utcnow().timestamp()
+        self.request.send("{}".format(int(when)).encode())
+        self.request.send(b"\n")
         for data in self.messages():
             print(data)
 
@@ -29,8 +34,8 @@ class ThreadedTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
 
 
 def daemon():
-    HOST, PORT = "localhost", 0
+    HOST, PORT = "localhost", 2017
     server = ThreadedTCPServer((HOST, PORT), SyncServerHandler)
     ip, port = server.server_address
-    # print("nc {} {}".format(ip, port))
+    print("nc {} {}".format(ip, port))
     server.serve_forever()
