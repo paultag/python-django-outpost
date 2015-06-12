@@ -21,6 +21,11 @@ class SyncableModel(models.Model):
             SyncableModel._sync_queue = queue.Queue(maxsize=0)
         return SyncableModel._sync_queue
 
+    @classmethod
+    def _catchup(cls, when):
+        q = self.get_queue()
+        for obj in cls.objects.filter(when__gte=when).distinct():
+            q.put(obj)
 
     def save(self, *args, **kwargs):
         if SyncableModel._sync_queue is not None:
