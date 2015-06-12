@@ -12,5 +12,6 @@ class SyncModelTestCase(TestCase):
         TestModel.objects.create(data="Foo!!")
         TestModel.objects.create(data="Bar!!")
 
-    def test_animals_can_speak(self):
-        self.assertEqual("", "foo")
+    def test_save_works_basic(self):
+        d = TestModel.objects.get(data="Foo!!")
+        self.assertEqual("Foo!!", d.data)
