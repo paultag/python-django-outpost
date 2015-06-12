@@ -5,6 +5,7 @@ import queue
 import socket
 import json
 
+
 class NetworkSyncBackend:
     def __init__(self, host, potr):
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
