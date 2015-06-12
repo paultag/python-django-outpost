@@ -13,14 +13,12 @@ class NetworkSyncBackend:
         self.backoff = backoff
         self.host = host
         self.port = port
+        SyncableModel._stawp()
         self.connect()
 
     def connect(self):
         self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.s.connect((self.host, self.port))
-
-        # Right, ok. Let's just catchup from here on out.
-        SyncableModel._stawp()
 
         timestamp = dt.datetime.fromtimestamp(int(self.s.recv(10)))
         for model in SyncableModel.get_models():
@@ -30,6 +28,9 @@ class NetworkSyncBackend:
         try:
             return self._sync(obj)
         except BrokenPipeError:
+            SyncableModel._stawp()
+            # We'll be asked for the time again, no need to send dupes.
+
             time.sleep(self.backoff)
             self.connect()
             return self.sync(obj)
