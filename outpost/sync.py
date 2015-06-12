@@ -3,7 +3,7 @@ import threading
 import queue
 
 
-class SyncBackend:
+class NetworkSyncBackend:
     def __init__(self, host, auth):
         pass
 
@@ -36,7 +36,7 @@ class Sync:
             self.backend.sync(obj)
 
 
-def sync(*, host, auth, backend=SyncBackend):
-    o = Sync(backend=backend(host=host, auth=auth))
+def sync(*, backend=NetworkSyncBackend, **kwargs):
+    o = Sync(backend=backend(**kwargs))
     o.start()
     return o
