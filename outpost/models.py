@@ -1,8 +1,11 @@
 from django.db import models
+import queue
 import uuid
 
 
 class SyncableModel(models.Model):
+    _sync_queue = None
+
     class Meta:
         abstract = True
 
@@ -12,5 +15,15 @@ class SyncableModel(models.Model):
     def serialize(self):
         pass
 
+    @classmethod
+    def get_queue(cls):
+        if SyncableModel._sync_queue is None:
+            SyncableModel._sync_queue = queue.Queue(maxsize=0)
+        return SyncableModel._sync_queue
+
+
     def save(self, *args, **kwargs):
+        if SyncableModel._sync_queue is not None:
+            SyncableModel._sync_queue.put(self)
+
         return super(SyncableModel, self).save(*args, **kwargs)

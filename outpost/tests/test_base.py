@@ -1,10 +1,6 @@
 from django.test import TestCase
-from django.db import models
-from outpost.models import SyncableModel
+from .models import TestModel
 
-
-class TestModel(SyncableModel):
-    data = models.CharField(max_length=5)
 
 
 class SyncModelTestCase(TestCase):
