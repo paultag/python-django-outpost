@@ -1,13 +1,12 @@
 #!/usr/bin/env python
 
-from outpost import __appname__, __version__
 from setuptools import setup
 
 long_description = ""
 
 setup(
-    name=__appname__,
-    version=__version__,
+    name='django-outpost',
+    version='0.1',
     packages=['outpost',],
 
     author="Paul Tagliamonte",
