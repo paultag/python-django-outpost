@@ -16,3 +16,19 @@ class SyncModelTestCase(TestCase):
     def test_search_works(self):
         tm, = SyncableModel.get_models()
         self.assertEqual(tm, TestModel)
+
+    def test_serialize_works_basic(self):
+        d = TestModel.objects.get(data="Foo!!")
+        s = d.serialize()
+        self.assertEqual(s['id'], str(d.id))
+
+    def test_hydrate_works_basic(self):
+        d = TestModel.objects.get(data="Foo!!")
+        count = TestModel.objects.count()
+
+        s = d.serialize()
+        data = TestModel.hydrate(s)
+        data.save()
+        self.assertEqual(data.id, d.id)
+
+        self.assertEqual(TestModel.objects.count(), count)

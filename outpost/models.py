@@ -13,7 +13,17 @@ class SyncableModel(models.Model):
     when = models.DateTimeField(auto_now_add=True)
 
     def serialize(self):
-        pass
+        return {field.name: field.value_to_string(self)
+                for field in self._meta.local_fields}
+
+    @classmethod
+    def hydrate(cls, data):
+        instance = cls()
+        fields = {field.name: field for field in cls._meta.local_fields}
+        for k, v in data.items():
+            sdata, field = (data[k], fields[k])
+            setattr(instance, k, field.to_python(sdata))
+        return instance
 
     @classmethod
     def get_queue(cls):

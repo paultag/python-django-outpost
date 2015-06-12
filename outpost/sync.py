@@ -2,13 +2,17 @@ from .models import SyncableModel
 import threading
 import queue
 
+import socket
+import json
 
 class NetworkSyncBackend:
-    def __init__(self, host, auth):
-        pass
+    def __init__(self, host, potr):
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.connect((host, port))
+        # defer s.close()
 
     def sync(self, obj):
-        pass
+        s.send(json.dumps(obj.serialize()))
 
 
 class Sync:
