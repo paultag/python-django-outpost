@@ -2,6 +2,7 @@ from .models import SyncableModel
 import threading
 import queue
 
+import datetime as dt
 import socket
 import json
 import time
@@ -17,6 +18,11 @@ class NetworkSyncBackend:
     def connect(self):
         self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.s.connect((self.host, self.port))
+        timestamp = dt.datetime.fromtimestamp(int(self.s.recv(10)))
+        print(timestamp)
+
+        for model in SyncableModel.get_models():
+            model._catchup(timestamp)
 
     def sync(self, obj):
         try:
