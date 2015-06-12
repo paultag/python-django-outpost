@@ -17,7 +17,11 @@ setup(
     license="GPLv3",
     url="https://pault.ag/",
 
-    entry_points={},
+    entry_points={
+        'console_scripts': [
+            'outpostd = outpost.cli:daemon',
+        ]
+    },
 
     platforms=['any']
 )
