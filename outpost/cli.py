@@ -32,5 +32,5 @@ def daemon():
     HOST, PORT = "localhost", 0
     server = ThreadedTCPServer((HOST, PORT), SyncServerHandler)
     ip, port = server.server_address
-    print("nc {} {}".format(ip, port))
+    # print("nc {} {}".format(ip, port))
     server.serve_forever()
