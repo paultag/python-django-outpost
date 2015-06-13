@@ -1,8 +1,13 @@
-import threading
+from django.apps import apps
+import django
+
+from .models import SyncableModel
+
+import datetime as dt
 import socketserver
+import threading
 import time
 import json
-import datetime as dt
 
 
 class SyncServerHandler(socketserver.BaseRequestHandler):
@@ -27,13 +32,26 @@ class SyncServerHandler(socketserver.BaseRequestHandler):
         self.request.send("{}".format(int(when)).encode())
         self.request.send(b"\n")
         for data in self.messages():
-            print(data)
+            type = data.pop("type")
+            obj = data.pop("object")
+
+            model = apps.get_model(app_label=type['label'],
+                                   model_name=type['model'])
+
+            if not issubclass(model, SyncableModel):
+                continue
+
+            incoming = model.hydrate(obj)
+            print(incoming)
+
 
 class ThreadedTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
     pass
 
 
 def daemon():
+    django.setup()
+
     HOST, PORT = "localhost", 2017
     server = ThreadedTCPServer((HOST, PORT), SyncServerHandler)
     ip, port = server.server_address
