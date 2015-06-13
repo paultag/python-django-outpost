@@ -39,11 +39,7 @@ class NetworkSyncBackend:
             return self.sync(obj)
 
     def _sync(self, obj):
-        self.s.send(json.dumps({
-            "type": {"label": obj._meta.app_label,
-                     "model": obj._meta.object_name},
-            "object": obj.serialize(),
-        }).encode())
+        self.s.send(json.dumps(obj.encapsulate()).encode())
         self.s.send(b'\n')
 
 

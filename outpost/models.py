@@ -21,6 +21,11 @@ class SyncableModel(models.Model):
         return {field.attname: field.value_to_string(self)
                 for field in self._meta.local_fields}
 
+    def encapsulate(self):
+        return {"type": {"label": self._meta.app_label,
+                         "model": self._meta.object_name},
+                "object": self.serialize()}
+
     @classmethod
     def hydrate(cls, data):
         instance = cls()
