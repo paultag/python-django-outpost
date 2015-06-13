@@ -3,6 +3,10 @@ import queue
 import uuid
 
 
+class Outpost(models.Model):
+    id = models.CharField(max_length=16, primary_key=True)
+
+
 class SyncableModel(models.Model):
     _sync_queue = None
 
@@ -11,15 +15,16 @@ class SyncableModel(models.Model):
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     when = models.DateTimeField(auto_now_add=True)
+    outpost = models.ForeignKey('Outpost', null=True)
 
     def serialize(self):
-        return {field.name: field.value_to_string(self)
+        return {field.attname: field.value_to_string(self)
                 for field in self._meta.local_fields}
 
     @classmethod
     def hydrate(cls, data):
         instance = cls()
-        fields = {field.name: field for field in cls._meta.local_fields}
+        fields = {field.attname: field for field in cls._meta.local_fields}
         for k, v in data.items():
             sdata, field = (data[k], fields[k])
             setattr(instance, k, field.to_python(sdata))
