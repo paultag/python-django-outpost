@@ -20,7 +20,6 @@ class SyncModelTestCase(TestCase):
     def test_serialize_works_basic(self):
         d = TestModel.objects.get(data="Foo!!")
         s = d.serialize()
-        print(s)
         self.assertEqual(s['id'], str(d.id))
 
     def test_hydrate_works_basic(self):
