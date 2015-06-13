@@ -1,11 +1,14 @@
 from .models import SyncableModel
 import threading
 import queue
+import logging
 
 import datetime as dt
 import socket
 import json
 import time
+
+log = logging.Logger('outpost')
 
 
 class NetworkSyncBackend:
@@ -70,6 +73,11 @@ class Sync:
 
 
 def sync(*, backend=NetworkSyncBackend, **kwargs):
-    o = Sync(backend=backend(**kwargs))
+    try:
+        o = Sync(backend=backend(**kwargs))
+    except ConnectionRefusedError:
+        log.warning("Connection refused; aborting sync routines")
+        return
+
     o.start()
     return o

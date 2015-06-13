@@ -9,6 +9,26 @@ import threading
 import time
 import json
 
+import websockets
+import asyncio
+
+
+
+class WebsocketBroadcaster(threading.Thread):
+    @asyncio.coroutine
+    def pass(self, websocket, path):
+        self.websockets.append(websocket)
+        while True:
+            yield from websocket.recv()
+            # Forever just drain the pipes?
+
+    def run(self):
+        start_server = websockets.serve(self.hello, 'localhost', 8765)
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        asyncio.get_event_loop().run_until_complete(start_server)
+        asyncio.get_event_loop().run_forever()
+
 
 class SyncServerHandler(socketserver.BaseRequestHandler):
 
@@ -28,6 +48,8 @@ class SyncServerHandler(socketserver.BaseRequestHandler):
                     continue
 
     def handle(self):
+        # Now, get the client.
+
         when = dt.datetime.utcnow().timestamp()
         self.request.send("{}".format(int(when)).encode())
         self.request.send(b"\n")
@@ -51,6 +73,9 @@ class ThreadedTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
 
 def daemon():
     django.setup()
+
+    ws = WebsocketBroadcaster()
+    ws.start()
 
     HOST, PORT = "localhost", 2017
     server = ThreadedTCPServer((HOST, PORT), SyncServerHandler)
