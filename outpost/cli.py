@@ -15,18 +15,41 @@ import asyncio
 
 
 class WebsocketBroadcaster(threading.Thread):
+
     @asyncio.coroutine
-    def pass(self, websocket, path):
+    def handle(self, websocket, path):
         self.websockets.append(websocket)
         while True:
             yield from websocket.recv()
             # Forever just drain the pipes?
 
+    def send(self, datum):
+        return self.loop.call_soon_threadsafe(asyncio.async, self.signal(datum))
+
+    @asyncio.coroutine
+    def signal(self, datum):
+        yield from self.queue.put(datum)
+
+    @asyncio.coroutine
+    def process(self):
+        while True:
+            datum = yield from self.queue.get()
+            for socket in self.websockets:
+                yield from socket.send(json.dumps(datum.encapsulate()))
+
     def run(self):
-        start_server = websockets.serve(self.hello, 'localhost', 8765)
+        start_server = websockets.serve(self.handle, 'localhost', 30009)
         loop = asyncio.new_event_loop()
+        self.loop = loop
+
+        self.websockets = []
+        self.queue = asyncio.Queue(loop=loop)
+
         asyncio.set_event_loop(loop)
-        asyncio.get_event_loop().run_until_complete(start_server)
+        asyncio.get_event_loop().run_until_complete(asyncio.gather(
+            self.process(),
+            start_server
+        ))
         asyncio.get_event_loop().run_forever()
 
 
@@ -64,11 +87,11 @@ class SyncServerHandler(socketserver.BaseRequestHandler):
                 continue
 
             incoming = model.hydrate(obj)
-            print(incoming)
+            self.server.watcher.send(incoming)
 
 
 class ThreadedTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
-    pass
+    watcher = None
 
 
 def daemon():
@@ -79,6 +102,8 @@ def daemon():
 
     HOST, PORT = "localhost", 2017
     server = ThreadedTCPServer((HOST, PORT), SyncServerHandler)
+    server.watcher = ws
+
     ip, port = server.server_address
     print("nc {} {}".format(ip, port))
     server.serve_forever()
