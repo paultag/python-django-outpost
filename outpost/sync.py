@@ -73,11 +73,6 @@ class Sync:
 
 
 def sync(*, backend=NetworkSyncBackend, **kwargs):
-    try:
-        o = Sync(backend=backend(**kwargs))
-    except ConnectionRefusedError:
-        log.warning("Connection refused; aborting sync routines")
-        return
-
+    o = Sync(backend=backend(**kwargs))
     o.start()
     return o
