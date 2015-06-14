@@ -2,7 +2,7 @@ from django.conf import settings
 from django.apps import apps
 import django
 
-from .models import SyncableModel
+from .models import SyncableModel, Outpost
 
 import datetime as dt
 import socketserver
@@ -73,6 +73,7 @@ class SyncServerHandler(socketserver.BaseRequestHandler):
 
     def handle(self):
         # Now, get the client.
+        outpost = Outpost.objects.get(id="test")
 
         when = dt.datetime.utcnow().timestamp()
         self.request.send("{}".format(int(when)).encode())
@@ -88,6 +89,7 @@ class SyncServerHandler(socketserver.BaseRequestHandler):
                 continue
 
             incoming = model.hydrate(obj)
+            incoming.outpost = outpost
             self.server.watcher.send(incoming)
 
 
@@ -106,5 +108,4 @@ def daemon():
     server.watcher = ws
 
     ip, port = server.server_address
-    print("nc {} {}".format(ip, port))
     server.serve_forever()
