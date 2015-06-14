@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.apps import apps
 import django
 
@@ -100,8 +101,8 @@ def daemon():
     ws = WebsocketBroadcaster()
     ws.start()
 
-    HOST, PORT = "localhost", 2017
-    server = ThreadedTCPServer((HOST, PORT), SyncServerHandler)
+    server = ThreadedTCPServer((settings.OUTPOST_SERVER, settings.OUTPOST_PORT),
+                               SyncServerHandler)
     server.watcher = ws
 
     ip, port = server.server_address

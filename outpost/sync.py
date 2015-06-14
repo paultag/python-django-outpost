@@ -1,7 +1,5 @@
 from .models import SyncableModel
-import threading
-import queue
-import logging
+from django.conf import settings
 
 import datetime as dt
 import socket
@@ -69,6 +67,7 @@ class Sync:
 
 
 def sync(*, backend=NetworkSyncBackend, **kwargs):
-    o = Sync(backend=backend(**kwargs))
-    o.start()
-    return o
+    if settings.OUTPOST_ENABLE:
+        o = Sync(backend=backend(**kwargs))
+        o.start()
+        return o
