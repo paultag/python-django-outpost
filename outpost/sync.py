@@ -2,6 +2,7 @@ from .models import SyncableModel
 from django.conf import settings
 
 import datetime as dt
+import logging
 import socket
 import json
 import time
