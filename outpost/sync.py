@@ -2,8 +2,10 @@ from .models import SyncableModel
 from django.conf import settings
 
 import datetime as dt
+import threading
 import logging
 import socket
+import queue
 import json
 import time
 
@@ -21,6 +23,7 @@ class NetworkSyncBackend:
     def connect(self):
         self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.s.connect((self.host, self.port))
+        self.s.send(b"test\n")
 
         timestamp = dt.datetime.fromtimestamp(int(self.s.recv(10)))
         for model in SyncableModel.get_models():

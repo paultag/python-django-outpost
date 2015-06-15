@@ -10,56 +10,17 @@ import threading
 import time
 import json
 
-import websockets
-import asyncio
-
-
-
-class WebsocketBroadcaster(threading.Thread):
-
-    @asyncio.coroutine
-    def handle(self, websocket, path):
-        self.websockets.append(websocket)
-        while True:
-            yield from websocket.recv()
-            # Forever just drain the pipes?
-
-    def send(self, datum):
-        return self.loop.call_soon_threadsafe(asyncio.async, self.signal(datum))
-
-    @asyncio.coroutine
-    def signal(self, datum):
-        yield from self.queue.put(datum)
-
-    @asyncio.coroutine
-    def process(self):
-        while True:
-            datum = yield from self.queue.get()
-            for socket in self.websockets:
-                yield from socket.send(json.dumps(datum.encapsulate()))
-
-    def run(self):
-        start_server = websockets.serve(self.handle, 'localhost', 30009)
-        loop = asyncio.new_event_loop()
-        self.loop = loop
-
-        self.websockets = []
-        self.queue = asyncio.Queue(loop=loop)
-
-        asyncio.set_event_loop(loop)
-        asyncio.get_event_loop().run_until_complete(asyncio.gather(
-            self.process(),
-            start_server
-        ))
-        asyncio.get_event_loop().run_forever()
-
 
 class SyncServerHandler(socketserver.BaseRequestHandler):
-
     def messages(self):
         data = ""
         while True:
-            data += self.request.recv(4096).decode('utf-8')
+            try:
+                data += self.request.recv(4096).decode('utf-8')
+            except ConnectionResetError:
+                print("EOF")
+                break
+
             if data == "":
                 break
 
@@ -71,9 +32,36 @@ class SyncServerHandler(socketserver.BaseRequestHandler):
                     print(e)
                     continue
 
+    def hold(self):
+        while True:
+            self.request.recv(4096).decode('utf-8')
+
+    def broadcast(self, thing):
+        data = json.dumps(thing.encapsulate()).encode()
+        for connection in self.server.listeners[:]:
+            try:
+                connection.send(data + b"\n")
+            except ConnectionResetError:
+                self.server.listeners.remove(connection)
+
     def handle(self):
+        data = self.request.recv(4096).decode('utf-8')
+        lines = data.split("\n")
+        if lines == []:
+            self.request.close()
+            return
+
+        name = lines[0]
+        if name == "":
+            self.server.listeners.append(self.request)
+            return self.hold()
+
         # Now, get the client.
-        outpost = Outpost.objects.get(id="test")
+        try:
+            outpost = Outpost.objects.get(id=name)
+        except Outpost.DoesNotExist:
+            self.request.close()
+            return
 
         when = dt.datetime.utcnow().timestamp()
         self.request.send("{}".format(int(when)).encode())
@@ -90,22 +78,18 @@ class SyncServerHandler(socketserver.BaseRequestHandler):
 
             incoming = model.hydrate(obj)
             incoming.outpost = outpost
-            self.server.watcher.send(incoming)
+            self.broadcast(incoming)
 
 
 class ThreadedTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
-    watcher = None
+    listeners = []
 
 
 def daemon():
     django.setup()
 
-    ws = WebsocketBroadcaster()
-    ws.start()
-
     server = ThreadedTCPServer((settings.OUTPOST_SERVER, settings.OUTPOST_PORT),
                                SyncServerHandler)
-    server.watcher = ws
 
     ip, port = server.server_address
     server.serve_forever()
