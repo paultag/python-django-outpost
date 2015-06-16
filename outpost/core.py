@@ -1,4 +1,5 @@
 from django.db import models
+from outpost.models import Outpost
 import queue
 import uuid
 
@@ -11,7 +12,7 @@ class SyncableModel(models.Model):
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     when = models.DateTimeField(auto_now_add=True)
-    outpost = models.ForeignKey('Outpost', null=True)
+    outpost = models.ForeignKey(Outpost, null=True)
 
     def serialize(self):
         return {field.attname: field.value_to_string(self)

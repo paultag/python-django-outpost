@@ -25,7 +25,7 @@ class NetworkSyncBackend:
         self.s.connect((self.host, self.port))
         self.s.send(b"test\n")
 
-        timestamp = dt.datetime.fromtimestamp(int(self.s.recv(10)))
+        timestamp = dt.datetime.fromtimestamp(int(self.s.recv(10)), dt.timezone.utc)
         for model in SyncableModel.get_models():
             model._catchup(timestamp)
 

@@ -63,7 +63,7 @@ class SyncServerHandler(socketserver.BaseRequestHandler):
             self.request.close()
             return
 
-        when = dt.datetime.utcnow().timestamp()
+        when = dt.datetime.utcnow(dt.timezone.utc).timestamp()
         self.request.send("{}".format(int(when)).encode())
         self.request.send(b"\n")
         for data in self.messages():
