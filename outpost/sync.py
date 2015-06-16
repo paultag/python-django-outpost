@@ -24,7 +24,6 @@ class NetworkSyncBackend:
         self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.s.connect((self.host, self.port))
         self.s.send(b"test\n")
-
         timestamp = dt.datetime.fromtimestamp(int(self.s.recv(10)), dt.timezone.utc)
         for model in SyncableModel.get_models():
             model._catchup(timestamp)
@@ -60,9 +59,9 @@ class Sync:
         self.running = False
 
     def run(self):
-        q = SyncableModel.get_queue()
         self.running = True
         while self.running:
+            q = SyncableModel.get_queue()
             try:
                 obj = q.get(timeout=0.5)
             except queue.Empty:
