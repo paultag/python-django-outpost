@@ -1,4 +1,4 @@
-from .models import SyncableModel
+from .core import SyncableModel
 from django.conf import settings
 
 import datetime as dt

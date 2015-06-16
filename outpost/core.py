@@ -53,4 +53,5 @@ class SyncableModel(models.Model):
 
     def save(self, *args, **kwargs):
         if SyncableModel._sync_queue is not None:
-
+            SyncableModel._sync_queue.put(self)
+        return super(SyncableModel, self).save(*args, **kwargs)
