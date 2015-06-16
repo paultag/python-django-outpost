@@ -23,6 +23,7 @@ class NetworkSyncBackend:
     def connect(self):
         self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.s.connect((self.host, self.port))
+        self.s.send(b"test\n")
 
         timestamp = dt.datetime.fromtimestamp(int(self.s.recv(10)))
         for model in SyncableModel.get_models():
